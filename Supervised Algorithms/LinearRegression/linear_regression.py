@@ -1,7 +1,7 @@
 '''
     Lets look at a simple implementaion of linear regression algorithm from scratch
     We use the classic medical insurance dataset
-    Dataset link: 
+    Dataset link: https://github.com/stedy/Machine-Learning-with-R-datasets/blob/master/insurance.csv
 
     Datatype notation :-
     lstr_ : local string variable
