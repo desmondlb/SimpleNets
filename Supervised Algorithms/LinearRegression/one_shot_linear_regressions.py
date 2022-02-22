@@ -11,7 +11,6 @@
     pint_ : parameter integer variable
     lflt_ : local floating point variable
     pflt_ : parameter floating point variable
-
 '''
 
 import pandas as pd
@@ -116,14 +115,22 @@ class OneShotLinearRegression():
         return llst_comparison
 
     def one_shot_lr(self, train_features, train_labels):
+        '''
+            θ = ( X_t * X )^-1 * X_T * Y
+            Where:
+                θ is the model parameters
+                X_t is the transpose of X
+                ^-1 represents the inverse
+        '''
         X = train_features
-        X_T = np.transpose(X)
         Y = train_labels
 
-        X_TX_I = np.linalg.inv(np.dot(X_T, X))
-        X_TX_I_X_T = np.dot(X_TX_I, X_T)
-        theta = np.dot(X_TX_I_X_T, Y)
+        X_t = np.transpose(X)
+        X_tX_I = np.linalg.inv(np.dot(X_t, X))
+        X_tX_I_X_t = np.dot(X_tX_I, X_t)
+        theta = np.dot(X_tX_I_X_t, Y)
         return theta
+
     def run(self, train_sample_partition=.8):
         '''
             Main entry point for the program
