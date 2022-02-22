@@ -12,9 +12,6 @@
     lflt_ : local floating point variable
     pflt_ : parameter floating point variable
 
-    Reader Comments: ...######...
-    Method Description: ''' '''
-    Developer Comments: #...
 '''
 
 import pandas as pd
@@ -31,15 +28,15 @@ class OneShotLinearRegression():
             This function is used to normalize the numeric data
             We use the scale to range normalization by default ( Scales the values between 0-1 )
         '''
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # Useful when the data is approzimately uniformly distributed
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         if pstr_normalization_type=="scale_to_range":
             return (pflt_value - pflt_min_value)/(pflt_max_value - pflt_min_value)
 
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # Useful when the only a few outliers are present in the data
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         if pstr_normalization_type=="z_score":
             # To be implemented
             pass
@@ -65,9 +62,9 @@ class OneShotLinearRegression():
         # self.ldf_insurance["charges"] = self.ldf_insurance["charges"].apply(self.numeric_normalizer, args=[
         #     lint_min_charges, lint_max_charges, normalization_type])
         
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # Convert smoker to categories as its not a numerical attribute
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         self.ldf_insurance['smoker'] = self.ldf_insurance['smoker'].astype('category').cat.codes
 
     def get_cost(self, train_labels, hypothesis) -> float:
@@ -82,23 +79,23 @@ class OneShotLinearRegression():
         '''
             Here we split the dataset into train data and test data
         '''
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # Lets convert the normalized dataframe to an np array for faster processing
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         normalized_data = self.ldf_insurance.drop(columns=['region', 'children', 'sex'])
         normalized_data = np.array(normalized_data, dtype=float)
 
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # Lets add an extra column to for theta_0 (bias). This makes the calculations easier
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         normalized_data = np.c_[np.ones(normalized_data.shape[0]), normalized_data]
 
         lint_partition_index = int(pflt_train_sample_partition*len(normalized_data))
         
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # For the input features (independent variables) we use [{Bias}, Age, BMI, Smoker]
         # For the target (dependent variables) we use the last column [charges]
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         train_features = normalized_data[:lint_partition_index, :4]
         test_features = normalized_data[lint_partition_index:, :4]
         train_labels = normalized_data[:lint_partition_index, -1]
@@ -131,17 +128,17 @@ class OneShotLinearRegression():
         '''
             Main entry point for the program
         '''
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # Normalize data will encode all categories and normalize the numerical data
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         self.normalize_data()
 
         train_features, train_labels, test_features, test_labels = self.get_train_and_test_data(
             train_sample_partition)
 
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         # Now lets call the batch gradient descent on our data
-        ####################################################################################
+        #-----------------------------------------------------------------------------------
         theta = self.one_shot_lr(train_features, train_labels)
 
         _ = self.evaluate_model(theta, test_features, test_labels)
