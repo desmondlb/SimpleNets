@@ -12,17 +12,21 @@
     lflt_ : local floating point variable
     pflt_ : parameter floating point variable
 '''
-
 import pandas as pd
 import numpy as np
 
-DATA_PATH = "Supervised Algorithms/LinearRegression/data/insurance.csv"
+class Config:
+    DATA_PATH = "Supervised Algorithms/LinearRegression/data/insurance.csv"
+    NORMALIZATION = "scale_to_range"
+    DATA_SPLIT = 0.8
+
 
 class OneShotLinearRegression():
     def __init__(self) -> None:
-        self.ldf_insurance = pd.read_csv(DATA_PATH)
+        self.ldf_insurance = pd.read_csv(Config.DATA_PATH)
 
-    def numeric_normalizer(self, pflt_value, pflt_min_value, pflt_max_value, pstr_normalization_type) -> float:
+    def numeric_normalizer(self, pflt_value, pflt_min_value, pflt_max_value, pflt_mean, \
+        pflt_std_dev) -> float:
         '''
             This function is used to normalize the numeric data
             We use the scale to range normalization by default ( Scales the values between 0-1 )
@@ -30,30 +34,33 @@ class OneShotLinearRegression():
         #-----------------------------------------------------------------------------------
         # Useful when the data is approzimately uniformly distributed
         #-----------------------------------------------------------------------------------
-        if pstr_normalization_type=="scale_to_range":
+        if Config.NORMALIZATION == "scale_to_range":
             return (pflt_value - pflt_min_value)/(pflt_max_value - pflt_min_value)
 
         #-----------------------------------------------------------------------------------
         # Useful when the only a few outliers are present in the data
         #-----------------------------------------------------------------------------------
-        if pstr_normalization_type=="z_score":
-            # To be implemented
-            pass
+        if Config.NORMALIZATION == "z_score":
+            return (pflt_value - pflt_mean)/pflt_std_dev
 
-    def normalize_data(self, normalization_type = "scale_to_range"):
+    def normalize_data(self):
         '''
             From some basic EDA performed we can see that the variables that most
             affect the insurance charge are Age, BMI and Smoker
         '''
         lint_min_age = min(self.ldf_insurance["age"])
         lint_max_age = max(self.ldf_insurance["age"])
+        lint_mean_age = self.ldf_insurance["age"].mean()
+        lint_age_std_dev = self.ldf_insurance["age"].std()
         self.ldf_insurance["age"] = self.ldf_insurance["age"].apply(self.numeric_normalizer, args=[
-            lint_min_age, lint_max_age, normalization_type])
+            lint_min_age, lint_max_age, lint_mean_age, lint_age_std_dev])
 
         lint_min_bmi = min(self.ldf_insurance["bmi"])
         lint_max_bmi = max(self.ldf_insurance["bmi"])
+        lint_mean_bmi = self.ldf_insurance["bmi"].mean()
+        lint_bmi_std_dev = self.ldf_insurance["bmi"].std()
         self.ldf_insurance["bmi"] = self.ldf_insurance["bmi"].apply(self.numeric_normalizer, args=[
-            lint_min_bmi, lint_max_bmi, normalization_type])
+            lint_min_bmi, lint_max_bmi, lint_mean_bmi, lint_bmi_std_dev])
 
         # Normalize the target variable
         # lint_min_charges = min(self.ldf_insurance["charges"])
@@ -66,15 +73,7 @@ class OneShotLinearRegression():
         #-----------------------------------------------------------------------------------
         self.ldf_insurance['smoker'] = self.ldf_insurance['smoker'].astype('category').cat.codes
 
-    def get_cost(self, train_labels, hypothesis) -> float:
-        '''
-            Calculate the cost for a particular epoch
-        '''
-        lint_total_samples = len(train_labels)
-        llst_squared_difference = np.power(np.subtract(hypothesis,train_labels), 2)
-        return np.sum(llst_squared_difference)/(2*lint_total_samples)
-
-    def get_train_and_test_data(self, pflt_train_sample_partition):
+    def get_train_and_test_data(self):
         '''
             Here we split the dataset into train data and test data
         '''
@@ -89,7 +88,7 @@ class OneShotLinearRegression():
         #-----------------------------------------------------------------------------------
         normalized_data = np.c_[np.ones(normalized_data.shape[0]), normalized_data]
 
-        lint_partition_index = int(pflt_train_sample_partition*len(normalized_data))
+        lint_partition_index = int(Config.DATA_SPLIT*len(normalized_data))
         
         #-----------------------------------------------------------------------------------
         # For the input features (independent variables) we use [{Bias}, Age, BMI, Smoker]
@@ -131,7 +130,7 @@ class OneShotLinearRegression():
         theta = np.dot(X_tX_I_X_t, Y)
         return theta
 
-    def run(self, train_sample_partition=.8):
+    def run(self):
         '''
             Main entry point for the program
         '''
@@ -140,8 +139,7 @@ class OneShotLinearRegression():
         #-----------------------------------------------------------------------------------
         self.normalize_data()
 
-        train_features, train_labels, test_features, test_labels = self.get_train_and_test_data(
-            train_sample_partition)
+        train_features, train_labels, test_features, test_labels = self.get_train_and_test_data()
 
         #-----------------------------------------------------------------------------------
         # Now lets call the batch gradient descent on our data
@@ -154,10 +152,10 @@ if __name__ == "__main__":
     lobj_one_shot_linear_regression = OneShotLinearRegression()
 
     '''
-        We can pass in the following optional parameters to the run method. 
-        Following are the default values:
-            train_sample_partition: .8 (80% training set and 20% test set)
-
+        We can set in the following optional parameters in the Config class. 
+        Following are the default values set:
+            DATA_SPLIT: .8 (80% training set and 20% test set)
+            NORMALIZATION: "scale_to_range" (You can set it to z_score as well)
         Feel free to tune the hyperparameters the way you want and have fun!
     '''
     lobj_one_shot_linear_regression.run()
