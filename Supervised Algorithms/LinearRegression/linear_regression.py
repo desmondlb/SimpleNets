@@ -20,7 +20,7 @@ class Config:
     NORMALIZATION = "scale_to_range"
     DATA_SPLIT = 0.8
     LEARNING_RATE = 0.01
-    NUM_EPOCHS: 10000
+    NUM_EPOCHS = 10000
 
 class LinearRegression():
     def __init__(self) -> None:
